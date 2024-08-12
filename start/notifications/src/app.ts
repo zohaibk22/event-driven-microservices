@@ -1,10 +1,14 @@
+import { disconnect } from "process";
 import { connectToDb } from "./utils/db";
+import { connectConsumer, disconnectConsumer } from "./utils/kafka";
 import { createServer } from "./utils/server";
 
 async function gracefulShutdown(app: Awaited<ReturnType<typeof createServer>>) {
   console.log("Graceful shutdown");
 
   await app.close();
+
+  await disconnectConsumer();
 
   process.exit(0);
 }
@@ -13,6 +17,8 @@ async function main() {
   const app = createServer();
 
   await connectToDb();
+
+  await connectConsumer();
 
   await app.listen({
     port: 4000,
